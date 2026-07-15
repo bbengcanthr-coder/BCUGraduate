@@ -5,22 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบออกปริญญาบัตร - มหาวิทยาลัยเบงจันทร์</title>
     <style>
-        /* นำเข้า Font Asangha (ต้องมีไฟล์ฟอนต์ในโฟลเดอร์เดียวกับ index.html) */
+        /* นำเข้า Font */
         @font-face {
             font-family: 'TH Dan Vi Vek ver 1.03';
-            src: url('TH Dan Vi Vek ver 1.03.ttf') format('truetype'); /* เปลี่ยนนามสกุลไฟล์หากเป็น .otf */
+            src: url('TH Dan Vi Vek ver 1.03.ttf') format('truetype'); 
             font-weight: normal;
             font-style: normal;
         }
 
         :root {
-            --primary-color: #9d8048; /* สีทองเบจ */
+            --primary-color: #9d8048; 
             --bg-color: #f9f9f9;
             --text-color: #333;
         }
 
         body {
-            font-family: 'TH Dan Vi Vek ver 1.03', sans-serif; /* ฟอนต์ UI ปกติ */
+            font-family: 'TH Dan Vi Vek ver 1.03', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -112,7 +112,7 @@
         .btn-download {
             background-color: var(--primary-color);
             color: white;
-            display: none; /* ซ่อนไว้จนกว่าจะกดสร้าง */
+            display: none; 
         }
 
         .btn-download:hover {
@@ -131,7 +131,7 @@
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: none; /* ซ่อนไว้ก่อน */
+            display: none; 
         }
 
         /* Responsive */
@@ -154,7 +154,6 @@
         </div>
         <div class="input-field">
             <label for="firstname">ชื่อจริง</label>
-            <!-- ใช้ชื่อ สุดสวรรค์ เป็นตัวอย่างในการทดสอบระบบ -->
             <input type="text" id="firstname" placeholder="สุดสวรรค์" value="สมเด็จ">
         </div>
         <div class="input-field">
@@ -263,8 +262,8 @@
     // อ้างอิงไฟล์รูปภาพเทมเพลต (ชื่อไฟล์ต้องตรงกันทุกประการ)
     templateImage.src = 'ปริญญาบัตร.jpg';
     
-    // โหลดฟอนต์ล่วงหน้าเพื่อป้องกันปัญหาฟอนต์ไม่ติดในครั้งแรก
-    document.fonts.load('45px "basis"').then(() => {
+    // แก้ไข: พรีโหลดฟอนต์ให้ถูกชื่อ เพื่อให้ฟอนต์ติดตั้งแต่ครั้งแรกที่เปิด
+    document.fonts.load('370px "TH Dan Vi Vek ver 1.03"').then(() => {
         console.log("Font loaded");
     });
 
@@ -276,30 +275,43 @@
 
         const fullName = `${title} ${fname} ${lname}`;
 
-        // กำหนดขนาด Canvas เท่ากับภาพต้นฉบับเพื่อความคมชัด
-        canvas.width = templateImage.width;
-        canvas.height = templateImage.height;
+        // แก้ไข: ใช้ naturalWidth / naturalHeight ป้องกันบั๊กเบราว์เซอร์มือถืออ่านขนาดผิด
+        canvas.width = templateImage.naturalWidth || templateImage.width;
+        canvas.height = templateImage.naturalHeight || templateImage.height;
 
         // วาดภาพพื้นหลัง
         ctx.drawImage(templateImage, 0, 0, canvas.width, canvas.height);
 
         // ตั้งค่ารูปแบบข้อความทั่วไป
-        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#616161'; // สีเทาเข้มให้เข้ากับโทนในภาพตัวอย่าง
+        ctx.fillStyle = '#616161';
         
+        // แก้ไข: บังคับวาดจากซ้าย (left) เสมอ แล้วใช้คณิตศาสตร์หาจุดกึ่งกลางแทน
+        ctx.textAlign = 'left';
+        
+        const maxWidth = canvas.width - 300; // ขอบซ้ายขวาด้านละ 150px
+
         // --- ส่วนที่ 1: ชื่อ-นามสกุล ---
         ctx.font = '370px "TH Dan Vi Vek ver 1.03"';
-        // คำนวณพิกัด Y (ประมาณ 47% ของความสูงภาพ - สามารถปรับตัวเลขพิกัดนี้ได้หากภาพไม่ตรง)
         const nameY = canvas.height * 0.47; 
-        // วาดชื่อ โดยจำกัดความกว้างสูงสุดเพื่อไม่ให้ตกขอบ (เว้นขอบซ้ายขวาด้านละ 150px)
-        ctx.fillText(fullName, canvas.width / 2, nameY, canvas.width - 300);
+        
+        // คำนวณความกว้างข้อความที่จะวาดจริง (ถ้ายาวเกิน maxWidth ระบบจะบีบลงมาเหลือเท่ากับ maxWidth)
+        const nameMetrics = ctx.measureText(fullName);
+        const nameDrawnWidth = Math.min(nameMetrics.width, maxWidth);
+        
+        // คำนวณพิกัด X ให้ข้อความอยู่ตรงกลางเป๊ะๆ
+        const nameX = (canvas.width - nameDrawnWidth) / 2;
+        ctx.fillText(fullName, nameX, nameY, maxWidth);
 
         // --- ส่วนที่ 2: ปริญญาบัตร ---
         ctx.font = '370px "TH Dan Vi Vek ver 1.03"';
-        // คำนวณพิกัด Y (ประมาณ 67% ของความสูงภาพ - สามารถปรับตัวเลขพิกัดนี้ได้)
         const degreeY = canvas.height * 0.67;
-        ctx.fillText(degree, canvas.width / 2, degreeY, canvas.width - 300);
+        
+        const degreeMetrics = ctx.measureText(degree);
+        const degreeDrawnWidth = Math.min(degreeMetrics.width, maxWidth);
+        
+        const degreeX = (canvas.width - degreeDrawnWidth) / 2;
+        ctx.fillText(degree, degreeX, degreeY, maxWidth);
 
         // แสดงผล Canvas และปุ่มดาวน์โหลด
         canvas.style.display = 'block';
