@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบออกปริญญาบัตร - มหาวิทยาลัยเบงจันทร์</title>
+    <style>
+        /* นำเข้า Font Asangha (ต้องมีไฟล์ฟอนต์ในโฟลเดอร์เดียวกับ index.html) */
+        @font-face {
+            font-family: 'basis';
+            src: url('basis.ttf') format('truetype'); /* เปลี่ยนนามสกุลไฟล์หากเป็น .otf */
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --primary-color: #9d8048; /* สีทองเบจ */
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif; /* ฟอนต์ UI ปกติ */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .input-field input, .input-field select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-generate {
+            background-color: #333;
+            color: white;
+        }
+
+        .btn-generate:hover {
+            background-color: #111;
+        }
+
+        .btn-download {
+            background-color: var(--primary-color);
+            color: white;
+            display: none; /* ซ่อนไว้จนกว่าจะกดสร้าง */
+        }
+
+        .btn-download:hover {
+            background-color: #7d6537;
+        }
+
+        .canvas-container {
+            margin-top: 30px;
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: none; /* ซ่อนไว้ก่อน */
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            .btn-group { flex-direction: column; }
+            button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ระบบออกปริญญาบัตรมหาวิทยาลัยเบงจันทร์</h2>
+    
+    <div class="form-group">
+        <div class="input-field" style="flex: 0.3; min-width: 100px;">
+            <label for="title">คำนำหน้า</label>
+            <input type="text" id="title" placeholder="เช่น นาย, นางสาว" value="นาย">
+        </div>
+        <div class="input-field">
+            <label for="firstname">ชื่อจริง</label>
+            <!-- ใช้ชื่อ สุดสวรรค์ เป็นตัวอย่างในการทดสอบระบบ -->
+            <input type="text" id="firstname" placeholder="สุดสวรรค์" value="สมเด็จ">
+        </div>
+        <div class="input-field">
+            <label for="lastname">นามสกุล</label>
+            <input type="text" id="lastname" placeholder="นามสกุล" value="เพ็ชรศิลป์">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="input-field">
+            <label for="degree">หลักสูตรปริญญาบัตร</label>
+            <select id="degree">
+                <optgroup label="วิศวกรรมศาสตรบัณฑิต">
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมไฟฟ้า)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมไฟฟ้า)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมโยธา)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมโยธา)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมเครื่องกล)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมเครื่องกล)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมอุตสาหกรรม)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมอุตสาหกรรม)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมคอมพิวเตอร์)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมคอมพิวเตอร์)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมสิ่งแวดล้อม)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมสิ่งแวดล้อม)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมพลังงาน)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมพลังงาน)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมโลจิสติกส์)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมโลจิสติกส์)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมเคมี)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมเคมี)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมความปลอดภัย)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมความปลอดภัย)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมชีวการแพทย์)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมชีวการแพทย์)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมวัสดุ)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมวัสดุ)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมเกษตร)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมเกษตร)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมอาหาร)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมอาหาร)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมพอลิเมอร์)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมพอลิเมอร์)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมอิเล็กทรอนิกส์และโทรคมนาคม)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมอิเล็กทรอนิกส์และโทรคมนาคม)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมเหมืองแร่และปิโตรเลียม)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมเหมืองแร่และปิโตรเลียม)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมหุ่นยนต์และระบบอัตโนมัติ)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมหุ่นยนต์และระบบอัตโนมัติ)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมดนตรีและสื่อประสม)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมดนตรีและสื่อประสม)</option>
+                    <option value="วิศวกรรมศาสตรบัณฑิต (วิศวกรรมอวกาศและภูมิสารสนเทศ)">วิศวกรรมศาสตรบัณฑิต (วิศวกรรมอวกาศและภูมิสารสนเทศ)</option>
+                </optgroup>
+                <optgroup label="สถาปัตยกรรมศาสตรบัณฑิต">
+                    <option value="สถาปัตยกรรมศาสตรบัณฑิต (ออกแบบภายใน)">สถาปัตยกรรมศาสตรบัณฑิต (ออกแบบภายใน)</option>
+                    <option value="สถาปัตยกรรมศาสตรบัณฑิต (ศิลปประยุกต์และออกแบบผลิตภัณฑ์)">สถาปัตยกรรมศาสตรบัณฑิต (ศิลปประยุกต์และออกแบบผลิตภัณฑ์)</option>
+                    <option value="สถาปัตยกรรมศาสตรบัณฑิต (สถาปัตยกรรมผังเมือง)">สถาปัตยกรรมศาสตรบัณฑิต (สถาปัตยกรรมผังเมือง)</option>
+                    <option value="สถาปัตยกรรมศาสตรบัณฑิต (สถาปัตยกรรม)">สถาปัตยกรรมศาสตรบัณฑิต (สถาปัตยกรรม)</option>
+                </optgroup>
+                <optgroup label="ศิลปบัณฑิต">
+                    <option value="ศิลปบัณฑิต (จิตรกรรม)" selected>ศิลปบัณฑิต (จิตรกรรม)</option>
+                    <option value="ศิลปบัณฑิต (ประติมากรรม)">ศิลปบัณฑิต (ประติมากรรม)</option>
+                    <option value="ศิลปบัณฑิต (ศิลปะไทยและวัฒนธรรมสร้างสรรค์)">ศิลปบัณฑิต (ศิลปะไทยและวัฒนธรรมสร้างสรรค์)</option>
+                    <option value="ศิลปบัณฑิต (ศิลปะภาพพิมพ์)">ศิลปบัณฑิต (ศิลปะภาพพิมพ์)</option>
+                </optgroup>
+                <optgroup label="ดุริยางคศาสตรบัณฑิต">
+                    <option value="ดุริยางคศาสตรบัณฑิต (การแสดงดนตรี)">ดุริยางคศาสตรบัณฑิต (การแสดงดนตรี)</option>
+                    <option value="ดุริยางคศาสตรบัณฑิต (ดนตรีแจ๊ส)">ดุริยางคศาสตรบัณฑิต (ดนตรีแจ๊ส)</option>
+                    <option value="ดุริยางคศาสตรบัณฑิต (ดนตรีเชิงพาณิชย์)">ดุริยางคศาสตรบัณฑิต (ดนตรีเชิงพาณิชย์)</option>
+                </optgroup>
+                <optgroup label="นิเทศศาสตรบัณฑิต">
+                    <option value="นิเทศศาสตรบัณฑิต (ภาพยนตร์)">นิเทศศาสตรบัณฑิต (ภาพยนตร์)</option>
+                    <option value="นิเทศศาสตรบัณฑิต (ศิลปะการแสดง)">นิเทศศาสตรบัณฑิต (ศิลปะการแสดง)</option>
+                    <option value="นิเทศศาสตรบัณฑิต (สื่อดิจิทัล)">นิเทศศาสตรบัณฑิต (สื่อดิจิทัล)</option>
+                    <option value="นิเทศศาสตรบัณฑิต (ออกแบบแฟชั่น)">นิเทศศาสตรบัณฑิต (ออกแบบแฟชั่น)</option>
+                </optgroup>
+                <optgroup label="อื่นๆ">
+                    <option value="นิติศาสตรบัณฑิต">นิติศาสตรบัณฑิต</option>
+                    <option value="ศิลปศาสตรบัณฑิต (รัฐประศาสนศาสตร์)">ศิลปศาสตรบัณฑิต (รัฐประศาสนศาสตร์)</option>
+                    <option value="ศิลปศาสตรบัณฑิต (พัฒนาสังคม)">ศิลปศาสตรบัณฑิต (พัฒนาสังคม)</option>
+                    <option value="ศิลปศาสตรบัณฑิต (สังคมวิทยาและมานุษยวิทยา)">ศิลปศาสตรบัณฑิต (สังคมวิทยาและมานุษยวิทยา)</option>
+                    <option value="ศิลปศาสตรบัณฑิต (ภาษาตะวันออก)">ศิลปศาสตรบัณฑิต (ภาษาตะวันออก)</option>
+                    <option value="ศิลปศาสตรบัณฑิต (ภาษาตะวันตก)">ศิลปศาสตรบัณฑิต (ภาษาตะวันตก)</option>
+                    <option value="ศิลปศาสตรบัณฑิต (ภาษาไทย)">ศิลปศาสตรบัณฑิต (ภาษาไทย)</option>
+                    <option value="ศิลปศาสตรบัณฑิต (ภาษาอังกฤษ)">ศิลปศาสตรบัณฑิต (ภาษาอังกฤษ)</option>
+                    <option value="บริหารธุรกิจบัณฑิต (การจัดการ)">บริหารธุรกิจบัณฑิต (การจัดการ)</option>
+                    <option value="บริหารธุรกิจบัณฑิต (การตลาด)">บริหารธุรกิจบัณฑิต (การตลาด)</option>
+                    <option value="บริหารธุรกิจบัณฑิต (จัดการธุรกิจบริการ)">บริหารธุรกิจบัณฑิต (จัดการธุรกิจบริการ)</option>
+                    <option value="วิทยาศาสตรบัณฑิต (เศรษฐศาสตร์เกษตร)">วิทยาศาสตรบัณฑิต (เศรษฐศาสตร์เกษตร)</option>
+                    <option value="วิทยาศาสตรบัณฑิต (เศรษฐศาสตร์เกษตรและธุรกิจเกษตร)">วิทยาศาสตรบัณฑิต (เศรษฐศาสตร์เกษตรและธุรกิจเกษตร)</option>
+                    <option value="วิทยาศาสตรบัณฑิต (เกษตรศาสตร์)">วิทยาศาสตรบัณฑิต (เกษตรศาสตร์)</option>
+                    <option value="วิทยาศาสตรบัณฑิต (สัตวศาสตร์)">วิทยาศาสตรบัณฑิต (สัตวศาสตร์)</option>
+                    <option value="วิทยาศาสตรบัณฑิต (เคมี)">วิทยาศาสตรบัณฑิต (เคมี)</option>
+                    <option value="วิทยาศาสตรบัณฑิต (ชีววิทยา)">วิทยาศาสตรบัณฑิต (ชีววิทยา)</option>
+                    <option value="วิทยาศาสตรบัณฑิต (ฟิสิกส์)">วิทยาศาสตรบัณฑิต (ฟิสิกส์)</option>
+                    <option value="วิทยาศาสตรบัณฑิต (วิทยาศาสตร์การกีฬา)">วิทยาศาสตรบัณฑิต (วิทยาศาสตร์การกีฬา)</option>
+                    <option value="แพทยศาสตรบัณฑิต">แพทยศาสตรบัณฑิต</option>
+                    <option value="ทันตแพทยศาสตรบัณฑิต">ทันตแพทยศาสตรบัณฑิต</option>
+                    <option value="สัตวแพทยศาสตรบัณฑิต">สัตวแพทยศาสตรบัณฑิต</option>
+                    <option value="ครุศาสตรบัณฑิต (ปฐมวัย)">ครุศาสตรบัณฑิต (ปฐมวัย)</option>
+                    <option value="ครุศาสตรบัณฑิต (ประถมศึกษา)">ครุศาสตรบัณฑิต (ประถมศึกษา)</option>
+                    <option value="ครุศาสตรบัณฑิต (มัธยมศึกษา)">ครุศาสตรบัณฑิต (มัธยมศึกษา)</option>
+                    <option value="ครุศาสตรบัณฑิต (จิตวิทยาการแนะแนว)">ครุศาสตรบัณฑิต (จิตวิทยาการแนะแนว)</option>
+                </optgroup>
+            </select>
+        </div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-generate" onclick="generateCert()">ดูตัวอย่างเกียรติบัตร</button>
+        <button class="btn-download" id="downloadBtn" onclick="downloadCert()">ดาวน์โหลดรูปภาพ</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="certCanvas"></canvas>
+    </div>
+</div>
+
+<script>
+    // ตั้งค่าตัวแปร
+    const canvas = document.getElementById('certCanvas');
+    const ctx = canvas.getContext('2d');
+    const templateImage = new Image();
+    
+    // อ้างอิงไฟล์รูปภาพเทมเพลต (ชื่อไฟล์ต้องตรงกันทุกประการ)
+    templateImage.src = 'สีทอง สีเขียว สีเบจ หรูหรา ทางการ วันสุนทรภู่ ประกาศนียบัตร เกียรติบัตร แนวนอน (1).jpg';
+    
+    // โหลดฟอนต์ล่วงหน้าเพื่อป้องกันปัญหาฟอนต์ไม่ติดในครั้งแรก
+    document.fonts.load('45px "basis"').then(() => {
+        console.log("Font loaded");
+    });
+
+    function generateCert() {
+        const title = document.getElementById('title').value.trim();
+        const fname = document.getElementById('firstname').value.trim();
+        const lname = document.getElementById('lastname').value.trim();
+        const degree = document.getElementById('degree').value;
+
+        const fullName = `${title} ${fname} ${lname}`;
+
+        // กำหนดขนาด Canvas เท่ากับภาพต้นฉบับเพื่อความคมชัด
+        canvas.width = templateImage.width;
+        canvas.height = templateImage.height;
+
+        // วาดภาพพื้นหลัง
+        ctx.drawImage(templateImage, 0, 0, canvas.width, canvas.height);
+
+        // ตั้งค่ารูปแบบข้อความทั่วไป
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#616161'; // สีเทาเข้มให้เข้ากับโทนในภาพตัวอย่าง
+        
+        // --- ส่วนที่ 1: ชื่อ-นามสกุล ---
+        ctx.font = '300px "basis"';
+        // คำนวณพิกัด Y (ประมาณ 47% ของความสูงภาพ - สามารถปรับตัวเลขพิกัดนี้ได้หากภาพไม่ตรง)
+        const nameY = canvas.height * 0.47; 
+        // วาดชื่อ โดยจำกัดความกว้างสูงสุดเพื่อไม่ให้ตกขอบ (เว้นขอบซ้ายขวาด้านละ 150px)
+        ctx.fillText(fullName, canvas.width / 2, nameY, canvas.width - 300);
+
+        // --- ส่วนที่ 2: ปริญญาบัตร ---
+        ctx.font = '250px "basis"';
+        // คำนวณพิกัด Y (ประมาณ 67% ของความสูงภาพ - สามารถปรับตัวเลขพิกัดนี้ได้)
+        const degreeY = canvas.height * 0.67;
+        ctx.fillText(degree, canvas.width / 2, degreeY, canvas.width - 300);
+
+        // แสดงผล Canvas และปุ่มดาวน์โหลด
+        canvas.style.display = 'block';
+        document.getElementById('downloadBtn').style.display = 'block';
+    }
+
+    function downloadCert() {
+        const fname = document.getElementById('firstname').value.trim();
+        // แปลง Canvas เป็น Data URL
+        const dataURL = canvas.toDataURL('image/jpeg', 1.0);
+        
+        // สร้างแท็กลิงก์สำหรับการดาวน์โหลด
+        const link = document.createElement('a');
+        link.download = `Degree_${fname}.jpg`;
+        link.href = dataURL;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>
